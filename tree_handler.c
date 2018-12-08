@@ -7,6 +7,7 @@
 
 int tree_handler(struct cmd_inf *unit);
 
+// настраивается ввод / вывод в фаилы
 void stream_adjustment(struct cmd_inf *unit) {
     if (unit->outfile != NULL) {
         char mode[2];
@@ -21,6 +22,7 @@ void stream_adjustment(struct cmd_inf *unit) {
         freopen(unit->infile, "r", stdin);
 }
 
+// перематывает древовидную структуру к концу сабшелла
 struct cmd_inf *rewind_pipe(struct cmd_inf *unit) {
     if ((unit->pipe == NULL) && (unit->psubcmd == NULL))
         return unit;
@@ -32,25 +34,26 @@ struct cmd_inf *rewind_pipe(struct cmd_inf *unit) {
         return rewind_pipe(unit->psubcmd);
 }
 
+// запускает команды или рекурсивно вызывает сабшелл
 int run_shell_or_subshell(struct cmd_inf *unit) {
-    //todo
 //    printf("UNIT %s in line %d\n", unit->argv[0], __LINE__);
     int returned_value = 0;
 
     if (unit->argv[0] == NULL) {
-        //todo
+
 //        printf("UNIT %s in line %d\n", unit->argv[0], __LINE__);
         returned_value = tree_handler(unit->psubcmd);
     } else {
-        //todo
+
 //        printf("UNIT %s in line %d\n", unit->argv[0], __LINE__);
         // нет, я не устраиваю здесь зомби-апокалипсис
         if (execvp(unit->argv[0], unit->argv) == -1){
-            printf("error in line %d, file tree_handler.c\n", __LINE__);
+//	будет выдавать ошибки на cd и false
+//            printf("error in line %d, file tree_handler.c\n", __LINE__);
             return -1;
         }
     }
-    //todo
+
 //    printf("run_shell_or_subshell-------------------    %d\n", returned_value);
     return returned_value;
 }
@@ -61,7 +64,6 @@ int pipe_handler(struct cmd_inf *unit) {
     int fd[2];
 
     while (unit != NULL) {
-        //todo
 //        printf("UNIT %s in line %d\n", unit->argv[0], __LINE__);
 
         pipe(fd);
@@ -94,33 +96,32 @@ int pipe_handler(struct cmd_inf *unit) {
     }
 
     while (wait(&status) != -1);
-
     return status;
 }
 
+// гламная функция - лбработчик дерева
 int tree_handler(struct cmd_inf *unit) {
     if (unit == NULL)
         return 0;
 
     int status = 0;
-
-    //todo
 //    printf("UNIT %s in line %d\n", unit->argv[0], __LINE__);
 
     // cd
     if ((unit->argv[0] != NULL) && (strcmp(unit->argv[0], "cd") == 0)) {
-        //todo
+
 //    printf("UNIT %s in line %d\n", unit->argv[0], __LINE__);
         chdir(unit->argv[1]);
 
         status = tree_handler(unit->psubcmd);
 
-        if ((unit->type == NXT) ||
-            ((unit->type == AND) && (WIFSIGNALED(status) != 0)) ||
-            ((unit->type == OR) && (WIFSIGNALED(status) == 0)))
-            return tree_handler(unit->next);
-        else
-            return status;
+		if (unit->next != NULL)
+	        if ((unit->type == NXT) ||
+	            ((unit->type == AND) && (WIFSIGNALED(status) != 0)) ||
+	            ((unit->type == OR) && (WIFSIGNALED(status) == 0)))
+	            return tree_handler(unit->next);
+	        else
+	            return status;
     }
 
     // pipe
@@ -133,7 +134,6 @@ int tree_handler(struct cmd_inf *unit) {
         if (unit == NULL)
             return status;
 
-        //todo
 //        printf("UNIT %s in line %d\n", unit->argv[0], __LINE__);
         status = tree_handler(unit->psubcmd);
 
@@ -167,10 +167,8 @@ int tree_handler(struct cmd_inf *unit) {
 
             // не фон
         } else {
-            //todo
 //            printf("UNIT %s in line %d\n", unit->argv[0], __LINE__);
             status = run_shell_or_subshell(unit);
-            //todo
 //            printf("i returnsed %d\n", status);
             if (status != 0)
                 exit(1);
@@ -183,7 +181,6 @@ int tree_handler(struct cmd_inf *unit) {
         wait(&status);
         status = WEXITSTATUS(status);
 
-        //todo
 //        printf("main---------------------------    %d\n", status);
 
         if (unit->next != NULL)

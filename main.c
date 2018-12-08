@@ -8,6 +8,7 @@
 #include "tree.h"
 #include "tree_handler.h"
 
+// если поставить в дебаг 1, то шелл будет считывать команды из фаила, указанного в мейн'е
 #define DEBUG 0
 
 #define BUFFER_SIZE 1
@@ -44,6 +45,11 @@ void add_char_to_end(char symbol, char *word) {
     word[length + 1] = '\0';
 }
 
+/*
+эта функция считывает BUFFER_SIZE символов и строит из них слова.
+для считывания используемтся функция fread (задание такое было),
+но с размером BUFFER_SIZE = 1 фактически работает как getc
+*/
 char *get_string(short *const flag) {
     static char *buf;
     static int i = BUFFER_SIZE;
@@ -144,7 +150,7 @@ char *get_string(short *const flag) {
             case '$':
             case '/':
             case '.':
-            case '-': // new option
+            case '-':
                 if ((w_length == 0) || (in(word[w_length - 1], special_symbols) == 0))
                     add_char_to_end(buf[i], word);
                 else {
@@ -225,11 +231,6 @@ char *get_string(short *const flag) {
 
                 free(word);
                 return NULL;
-
-                // буквы, цифры, подчеркивание, пробельные символы (в том числе символы табуляции '\t' и перевода строки '\n'
-                // |, ||, &, &&, ; , >, >>, <, (, ).
-                // (12345);|||67\
-                // (12345);|||67<112211>>3(;)1
         }
     }
 }
@@ -262,6 +263,11 @@ void handler(string_list unit) {
         return;
     }
     struct cmd_inf *tree = list_to_tree(unit);
+
+// можно распечатать полученные слова
+//	print_list(unit);
+
+// можно распечатать полученное дерево
 //    print_tree(tree);
 
     tree_handler(tree);
@@ -270,10 +276,11 @@ void handler(string_list unit) {
     del_list(unit);
 }
 
+// приглашение ко вводу
 void invitation() {
 //    printf("\x1b[30;5m"); // здесь изменяется цвет на зеленый
 //    printf("\033[32;41;5;1;3;61m"); // здесь изменяется цвет на зеленый
-    printf("\033[32;41;1;3;61m"); // здесь то же саоме, но не моргает
+    printf("\033[32;41;1;3;61m"); // здесь зеленый, но не моргает
     char s[100];
     getcwd(s, 100);
     printf("%s", s);
@@ -283,6 +290,7 @@ void invitation() {
     printf("\x1b[0m");
 }
 
+// тут собираются команды одной строки и запускается обработчик списка команд
 int main() {
 
 #if DEBUG == 1
