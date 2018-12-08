@@ -283,19 +283,6 @@ void invitation() {
     printf("\x1b[0m");
 }
 
-void sig_handler(int s) {
-
-    printf("\nto exit press \"Q\" \n");
-    int symbol;
-    symbol = getchar();
-    while (getchar()!='\n');
-    if ((symbol == 'q') || (symbol == 'Q'))
-        exit(0);
-
-    signal(SIGINT, sig_handler);
-//    invitation();
-}
-
 int main() {
 
 #if DEBUG == 1
