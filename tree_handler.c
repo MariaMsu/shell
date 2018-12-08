@@ -34,7 +34,7 @@ struct cmd_inf *rewind_pipe(struct cmd_inf *unit) {
         return rewind_pipe(unit->psubcmd);
 }
 
-// запускает команды или рекурсивно вызывает сабшелл
+// запускает команды или рекурсивно вызывает пайпа
 int run_shell_or_subshell(struct cmd_inf *unit) {
 //    printf("UNIT %s in line %d\n", unit->argv[0], __LINE__);
     int returned_value = 0;
