@@ -1,12 +1,14 @@
+#include <limits.h>
+#include <setjmp.h>
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <setjmp.h>
-#include <zconf.h>
-#include <signal.h>
+#include <unistd.h>
 #include "list.h"
 #include "tree.h"
 #include "tree_handler.h"
+
 
 // если поставить в дебаг 1, то шелл будет считывать команды из фаила, указанного в мейн'е
 #define DEBUG 0
