@@ -34,7 +34,7 @@ struct cmd_inf *rewind_pipe(struct cmd_inf *unit) {
         return rewind_pipe(unit->psubcmd);
 }
 
-// запускает команды или рекурсивно вызывает пайпа
+// запускает команды или рекурсивно вызывает сабшелл
 int run_shell_or_subshell(struct cmd_inf *unit) {
 //    printf("UNIT %s in line %d\n", unit->argv[0], __LINE__);
     int returned_value = 0;
@@ -58,6 +58,7 @@ int run_shell_or_subshell(struct cmd_inf *unit) {
     return returned_value;
 }
 
+// в цикле обрабатывает пайп от начала до конца
 int pipe_handler(struct cmd_inf *unit) {
     int pid;
     int status;
@@ -99,7 +100,7 @@ int pipe_handler(struct cmd_inf *unit) {
     return status;
 }
 
-// гламная функция - лбработчик дерева
+// главная функция - обработчик дерева
 int tree_handler(struct cmd_inf *unit) {
     if (unit == NULL)
         return 0;
@@ -107,7 +108,7 @@ int tree_handler(struct cmd_inf *unit) {
     int status = 0;
 //    printf("UNIT %s in line %d\n", unit->argv[0], __LINE__);
 
-    // cd
+    // обрабатывается cd (смена директории)
     if ((unit->argv[0] != NULL) && (strcmp(unit->argv[0], "cd") == 0)) {
 
 //    printf("UNIT %s in line %d\n", unit->argv[0], __LINE__);
@@ -115,13 +116,13 @@ int tree_handler(struct cmd_inf *unit) {
 
         status = tree_handler(unit->psubcmd);
 
-		if (unit->next != NULL)
-	        if ((unit->type == NXT) ||
-	            ((unit->type == AND) && (WIFSIGNALED(status) != 0)) ||
-	            ((unit->type == OR) && (WIFSIGNALED(status) == 0)))
-	            return tree_handler(unit->next);
-	        else
-	            return status;
+        if (unit->next != NULL)
+            if ((unit->type == NXT) ||
+                ((unit->type == AND) && (status == 0)) ||
+                ((unit->type == OR) && (status != 0)))
+                status = tree_handler(unit->next);
+
+        return status;
     }
 
     // pipe
@@ -135,7 +136,8 @@ int tree_handler(struct cmd_inf *unit) {
             return status;
 
 //        printf("UNIT %s in line %d\n", unit->argv[0], __LINE__);
-        status = tree_handler(unit->psubcmd);
+	    
+//         status = tree_handler(unit->psubcmd);
 
         if (unit->next != NULL)
             if ((unit->type == NXT) ||
@@ -163,6 +165,7 @@ int tree_handler(struct cmd_inf *unit) {
             } else
 
                 // kill father
+		// фоновый процесс берет на себя ос
                 kill(getpid(), SIGKILL);
 
             // не фон
@@ -180,8 +183,6 @@ int tree_handler(struct cmd_inf *unit) {
     } else {
         wait(&status);
         status = WEXITSTATUS(status);
-
-//        printf("main---------------------------    %d\n", status);
 
         if (unit->next != NULL)
             if ((unit->type == NXT) ||
